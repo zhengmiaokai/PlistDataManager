@@ -13,6 +13,19 @@
 
 @implementation SceneDelegate
 
+/* 终端提交代码
+ cd desktop/zhengmiaokai/PlistDataManager 进入目录
+
+ git checkout main 切换到main分支
+ 
+ git status 检测当前状态
+ 
+ git add . 暂存所有文件
+ 
+ git commit -m "<feat>: 提交代码" 提交本地仓库
+
+ git push -u origin main 推送至远程仓库的main分支
+ */
 
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
     // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
