@@ -1,0 +1,18 @@
+PODS:
+  - MKUtils/Extern (1.0.0):
+    - MKUtils/Marco
+  - MKUtils/Marco (1.0.0)
+
+DEPENDENCIES:
+  - MKUtils/Extern (~> 1.0.0)
+
+SPEC REPOS:
+  https://github.com/zhengmiaokai/Specs.git:
+    - MKUtils
+
+SPEC CHECKSUMS:
+  MKUtils: c96dd0729c0bc1e188d8b63795ac09d90d9ce882
+
+PODFILE CHECKSUM: efabcf18a561654ae3ac2fdc14dcdac7c3cc53b4
+
+COCOAPODS: 1.9.3
