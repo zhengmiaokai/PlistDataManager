@@ -1,6 +1,6 @@
 # PlistDataManager
 ### 数据存储-Plist文件
-` objective-c
+``` objective-c
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -10,4 +10,4 @@
     NSDictionary* data = [PlistDataStore objectForKey:@"data"];
     NSLog(@"%@", data);
 }
-`
+```
