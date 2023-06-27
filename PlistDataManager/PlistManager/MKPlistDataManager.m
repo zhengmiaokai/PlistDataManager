@@ -9,12 +9,16 @@
 #import "MKPlistDataManager.h"
 #import <MKUtils/NSFileManager+Addition.h>
 
+#define LOCK(...) dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER); \
+__VA_ARGS__; \
+dispatch_semaphore_signal(_lock);
+
 @interface MKPlistDataManager()
 
 @property (nonatomic, copy) NSString* filePath;
 @property (nonatomic, strong) NSMutableDictionary* plistData;
-@property (nonatomic, strong) NSRecursiveLock* lock;
-@property (nonatomic, strong) dispatch_queue_t serial_queue;
+@property (nonatomic, strong) dispatch_semaphore_t lock;
+@property (nonatomic, strong) dispatch_queue_t serialQueue;
 
 @end
 
@@ -33,8 +37,8 @@
     self = [super init];
     if (self) {
         self.filePath = [self pathToSave:fileName];
-        self.lock = [[NSRecursiveLock alloc] init];
-        self.serial_queue = dispatch_queue_create("plist_manager_queue", DISPATCH_QUEUE_PRIORITY_DEFAULT);
+        self.lock = dispatch_semaphore_create(1);
+        self.serialQueue = dispatch_queue_create("com.MKPlistManager.queue", DISPATCH_QUEUE_PRIORITY_DEFAULT);
     }
     return self;
 }
@@ -48,18 +52,14 @@
 
 - (NSMutableDictionary *)plistData {
     if (_plistData == nil) {
-        NSDictionary* dataDic = [[NSDictionary alloc]
-                                 initWithContentsOfFile:_filePath];
-        _plistData = [NSMutableDictionary
-                      dictionaryWithDictionary:dataDic];
+        NSDictionary* dataDic = [[NSDictionary alloc] initWithContentsOfFile:_filePath];
+        _plistData = [NSMutableDictionary dictionaryWithDictionary:dataDic];
     }
     return _plistData;
 }
 
 - (id)objectForKey:(NSString*)key {
-    [_lock lock];
-    id object = [self.plistData objectForKey:key];
-    [_lock unlock];
+    LOCK(id object = [self.plistData objectForKey:key]);
     return object;
 }
 
@@ -68,37 +68,29 @@
         NSLog(@"PlistManager object isNULL");
         return;
     }
-    [_lock lock];
-    [self.plistData setObject:object forKey:key];
-    [_lock unlock];
+    LOCK([self.plistData setObject:object forKey:key]);
 }
 
 - (void)removeObjectForKey:(NSString*)key {
-    [_lock lock];
-    [self.plistData removeObjectForKey:key];
-    [_lock unlock];
+    LOCK([self.plistData removeObjectForKey:key]);
 }
 
-- (void)asynchronize:(void(^)(BOOL isSuccess))asyncblock {
-    dispatch_async(_serial_queue, ^{
+- (void)asynchronize:(void(^)(BOOL isSuccess))completionHandler {
+    dispatch_async(_serialQueue, ^{
         BOOL isSuccess = [self synchronize];
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (asyncblock) {
-                asyncblock(isSuccess);
+            if (completionHandler) {
+                completionHandler(isSuccess);
             }
         });
     });
 }
 
 - (BOOL)synchronize {
-    NSDictionary* plistData = nil;
-    [_lock lock];
-    plistData = [self.plistData copy];
-    self.plistData = nil;
-    [_lock unlock];
-    
+    LOCK(NSDictionary *plistData = [self.plistData copy];
+         self.plistData = nil);
     BOOL success = [plistData writeToFile:_filePath atomically:YES];
-    
     return success;
 }
+
 @end

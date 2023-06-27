@@ -24,6 +24,6 @@
 
 - (BOOL)synchronize;
 
-- (void)asynchronize:(void(^)(BOOL isSuccess))asyncblock;
+- (void)asynchronize:(void(^)(BOOL isSuccess))completionHandler;
 
 @end
