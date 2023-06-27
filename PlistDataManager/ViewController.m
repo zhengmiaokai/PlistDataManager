@@ -17,10 +17,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [PlistDataStore setObject:@{@"key": @"value"} forKey:@"data"];
-    [PlistDataStore synchronize];
+    MKPlistDataManager *dataStorage = [MKPlistDataManager shareInstance];
     
-    NSDictionary* data = [PlistDataStore objectForKey:@"data"];
+    [dataStorage setObject:@{@"key": @"value"} forKey:@"data"];
+    [dataStorage synchronize];
+    
+    NSDictionary *data = [dataStorage objectForKey:@"data"];
     NSLog(@"%@", data);
 }
 

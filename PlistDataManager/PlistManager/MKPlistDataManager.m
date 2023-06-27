@@ -15,8 +15,8 @@ dispatch_semaphore_signal(_lock);
 
 @interface MKPlistDataManager()
 
-@property (nonatomic, copy) NSString* filePath;
-@property (nonatomic, strong) NSMutableDictionary* plistData;
+@property (nonatomic, copy) NSString *filePath;
+@property (nonatomic, strong) NSMutableDictionary *plistData;
 @property (nonatomic, strong) dispatch_semaphore_t lock;
 @property (nonatomic, strong) dispatch_queue_t serialQueue;
 
@@ -36,34 +36,34 @@ dispatch_semaphore_signal(_lock);
 - (instancetype)initWithFileName:(NSString *)fileName {
     self = [super init];
     if (self) {
-        self.filePath = [self pathToSave:fileName];
+        self.filePath = [self createFilePath:fileName];
         self.lock = dispatch_semaphore_create(1);
         self.serialQueue = dispatch_queue_create("com.MKPlistManager.queue", DISPATCH_QUEUE_PRIORITY_DEFAULT);
     }
     return self;
 }
 
-- (NSString*)pathToSave:(NSString *)fileName {
-    NSString* folderPath = [NSFileManager forderPathWithFolderName:@"app_plist" directoriesPath:DocumentPath()];
-    NSString* filePath = [NSFileManager pathWithFileName:fileName foldPath:folderPath];
+- (NSString*)createFilePath:(NSString *)fileName {
+    NSString *folderPath = [NSFileManager forderPathWithFolderName:@"app_plist" directoriesPath:DocumentPath()];
+    NSString *filePath = [NSFileManager pathWithFileName:fileName foldPath:folderPath];
     
     return filePath;
 }
 
 - (NSMutableDictionary *)plistData {
     if (_plistData == nil) {
-        NSDictionary* dataDic = [[NSDictionary alloc] initWithContentsOfFile:_filePath];
-        _plistData = [NSMutableDictionary dictionaryWithDictionary:dataDic];
+        NSDictionary *datas = [[NSDictionary alloc] initWithContentsOfFile:_filePath];
+        _plistData = [NSMutableDictionary dictionaryWithDictionary:datas];
     }
     return _plistData;
 }
 
-- (id)objectForKey:(NSString*)key {
+- (id)objectForKey:(NSString *)key {
     LOCK(id object = [self.plistData objectForKey:key]);
     return object;
 }
 
-- (void)setObject:(id)object forKey:(NSString*)key {
+- (void)setObject:(id)object forKey:(NSString *)key {
     if (object == nil) {
         NSLog(@"PlistManager object isNULL");
         return;
@@ -71,16 +71,25 @@ dispatch_semaphore_signal(_lock);
     LOCK([self.plistData setObject:object forKey:key]);
 }
 
-- (void)removeObjectForKey:(NSString*)key {
+- (void)removeObjectForKey:(NSString *)key {
     LOCK([self.plistData removeObjectForKey:key]);
 }
 
-- (void)asynchronize:(void(^)(BOOL isSuccess))completionHandler {
+- (void)removeAllObjects {
+    LOCK([self.plistData removeAllObjects]);
+}
+
+- (NSDictionary *)keyValues {
+    LOCK(NSDictionary *plistData = [self.plistData copy]);
+    return plistData;
+}
+
+- (void)asynchronize:(void(^)(BOOL success))completionHandler {
     dispatch_async(_serialQueue, ^{
-        BOOL isSuccess = [self synchronize];
+        BOOL success = [self synchronize];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (completionHandler) {
-                completionHandler(isSuccess);
+                completionHandler(success);
             }
         });
     });
@@ -89,6 +98,7 @@ dispatch_semaphore_signal(_lock);
 - (BOOL)synchronize {
     LOCK(NSDictionary *plistData = [self.plistData copy];
          self.plistData = nil);
+    
     BOOL success = [plistData writeToFile:_filePath atomically:YES];
     return success;
 }

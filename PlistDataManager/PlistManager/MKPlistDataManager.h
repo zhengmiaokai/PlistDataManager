@@ -8,19 +8,21 @@
 
 #import <Foundation/Foundation.h>
 
-#define PlistDataStore  [MKPlistDataManager shareInstance]
-
 @interface MKPlistDataManager : NSObject
 
 + (instancetype)shareInstance;
 
 - (instancetype)initWithFileName:(NSString *)fileName;
 
-- (void)setObject:(id)object forKey:(NSString*)key;
+- (void)setObject:(id)object forKey:(NSString *)key;
 
-- (id)objectForKey:(NSString*)key;
+- (id)objectForKey:(NSString *)key;
 
-- (void)removeObjectForKey:(NSString*)key;
+- (void)removeObjectForKey:(NSString *)key;
+
+- (void)removeAllObjects;
+
+- (NSDictionary *)keyValues;
 
 - (BOOL)synchronize;
 
