@@ -7,7 +7,6 @@
 //
 
 #import "MKPlistDataManager.h"
-#import <MKUtils/NSFileManager+Addition.h>
 
 #define LOCK(...) dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER); \
 __VA_ARGS__; \
@@ -44,8 +43,9 @@ dispatch_semaphore_signal(_lock);
 }
 
 - (NSString*)createFilePath:(NSString *)fileName {
-    NSString *folderPath = [NSFileManager forderPathWithFolderName:@"app_plist" directoriesPath:DocumentPath()];
-    NSString *filePath = [NSFileManager pathWithFileName:fileName foldPath:folderPath];
+    NSString* documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *folderPath = [self _folderPathWithFolderName:@"app_plist" directoriesPath:documentPath];
+    NSString *filePath = [self _pathWithFileName:fileName foldPath:folderPath];
     
     return filePath;
 }
@@ -101,6 +101,27 @@ dispatch_semaphore_signal(_lock);
     
     BOOL success = [plistData writeToFile:_filePath atomically:YES];
     return success;
+}
+
+#pragma mark - Private -
+- (NSString *)_folderPathWithFolderName:(NSString*)folderName directoriesPath:(NSString *)directoriesPath {
+    NSString* folderPath = [directoriesPath stringByAppendingPathComponent:folderName];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    BOOL isDirExist = [fileManager fileExistsAtPath:folderPath isDirectory:&isDir];
+    if(!(isDirExist && isDir)) {
+        BOOL bCreateDir = [fileManager createDirectoryAtPath:folderPath withIntermediateDirectories:YES attributes:nil error:nil];
+        if(!bCreateDir){
+            NSLog(@"Create Audio Directory Failed.");
+        }
+    }
+    return folderPath;
+}
+
+- (NSString*)_pathWithFileName:(NSString*)fileName foldPath:(NSString*)folderPath {
+    NSString* filePath = [folderPath stringByAppendingPathComponent:fileName];
+    return filePath;
 }
 
 @end
