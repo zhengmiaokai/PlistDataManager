@@ -37,7 +37,7 @@ dispatch_semaphore_signal(_lock);
     if (self) {
         self.filePath = [self createFilePath:fileName];
         self.lock = dispatch_semaphore_create(1);
-        self.serialQueue = dispatch_queue_create("com.MKPlistManager.queue", DISPATCH_QUEUE_PRIORITY_DEFAULT);
+        self.serialQueue = dispatch_queue_create("com.MKPlistManager.queue", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
